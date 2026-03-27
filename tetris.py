@@ -64,7 +64,6 @@ PIECES = {
 
 PIECE_NAMES = list(PIECES)
 
-
 class Tetris:
     def __init__(self, seed=None):
         self.rng = random.Random(seed)
@@ -164,20 +163,13 @@ class Tetris:
         if self.game_over:
             print("GAME OVER")
 
-
-if __name__ == "__main__":
-    env = Tetris(seed=1)
-    obs = env.reset()
-
-    # Example bot: try a fixed rotation and a fixed column.
-    # You can replace this with your own logic.
-    for _ in range(10):
-        env.render()
-        action = (0, 4)  # rotation 0, column 4
-        obs, reward, done = env.step(action)
-        print("reward:", reward)
-        print()
-        if done:
-            break
-
-    env.render()
+    def wzgledne_wysokosci(self):
+        wysokosci = [0] * W #wysokosci jakie sa w naszej planszy
+        for w in range(W): 
+            for h in range(H):
+                if self.board[w][h]:
+                    wysokosci[w] = H - h
+        minimalna_wysokosc_w_plansz = min(wysokosci)
+        for w in range(W):
+            wysokosci[w] -= minimalna_wysokosc_w_plansz
+        
