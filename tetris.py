@@ -179,7 +179,14 @@ class Tetris:
             ile = 0
             for h in range(H - 1, -1, -1):
                 wyn += ile * self.board[h][w]
-                ile += self.board[h][w]
+                ile += (self.board[h][w] ^ 1)
         return wyn
 
     
+env = Tetris()
+print(env.ile_dziur())
+for i in range (3):
+    action = (0, 5)
+    obs, reward, done = env.step(action)
+env.render()
+print(env.ile_dziur())
