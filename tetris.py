@@ -167,11 +167,12 @@ class Tetris:
         wysokosci = [0] * W #wysokosci jakie sa w naszej planszy
         for w in range(W): 
             for h in range(H):
-                if self.board[w][h]:
+                if self.board[h][w]:
                     wysokosci[w] = H - h
         minimalna_wysokosc_w_plansz = min(wysokosci)
         for w in range(W):
             wysokosci[w] -= minimalna_wysokosc_w_plansz
+        return wysokosci;
     
     def ile_dziur(self): #dziala w O(W * H) oraz w pamieci O(1) - liczy ile jest par ze klocek na gorze jest zajety a klocek pod nie nie zajety
         wyn = 0
