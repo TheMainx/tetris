@@ -4,7 +4,11 @@ from IPython import display
 import time
 
 # 1. Zmieniamy render_mode na "rgb_array", aby pobierać klatki obrazu
-env = gym.make("ALE/Tetris-v5", render_mode="rgb_array")
+env = gym.make(
+    "ALE/Tetris-v5", 
+    render_mode="rgb_array", 
+    repeat_action_probability=0.0  # Wymuszamy 0% szans na zablokowanie klawisza
+)
 observation, info = env.reset()
 
 # 2. Przygotowujemy wykres matplotlib do wyświetlania gry
