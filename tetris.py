@@ -167,10 +167,19 @@ class Tetris:
         wysokosci = [0] * W #wysokosci jakie sa w naszej planszy
         for w in range(W): 
             for h in range(H):
-                if self.board[h][w]:
+                if self.board[w][h]:
                     wysokosci[w] = H - h
         minimalna_wysokosc_w_plansz = min(wysokosci)
         for w in range(W):
             wysokosci[w] -= minimalna_wysokosc_w_plansz
-        return wysokosci
-        
+    
+    def ile_dziur(self): #ess algorytmika sie przydala ess 
+        wyn = 0
+        for w in range(W):
+            ile = 0
+            for h in range(H - 1, -1, -1):
+                wyn += ile * self.board[h][w]
+                ile += self.board[h][w]
+        return wyn
+
+    
