@@ -172,4 +172,5 @@ class Tetris:
         minimalna_wysokosc_w_plansz = min(wysokosci)
         for w in range(W):
             wysokosci[w] -= minimalna_wysokosc_w_plansz
+        return wysokosci
         
