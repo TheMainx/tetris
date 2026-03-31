@@ -3,6 +3,7 @@
 using namespace std;
 
 typedef long long ll;
+typedef long double ld;
 
 #define st first
 #define nd second
@@ -70,7 +71,10 @@ vector<vector<vector<pair<int, int>>>> tetromina = {
     }
 };
 
-void Tetris::init(int h, int w) {
+void Tetris::init(int h, int w, ld we1, ld we2, ld we3) {
+    w1 = we1;
+    w2 = we2;
+    w3 = we3;
     H = h;
     W = w;
     board = {};
@@ -147,6 +151,11 @@ void Tetris::move(int col, int rot) {
             end_of_game = true;
             return;
         }
+    }
+
+    tv(ele, tetromina[block][rot]) {
+        int ny = ys + ele.st;
+        int nx = xs + ele.nd;
         board[ny][nx]++;
         int sum = 0;
         f(i, 0, W) {
@@ -170,3 +179,31 @@ void Tetris::render() {
         cout << "\n";
     }
 }
+
+int Tetris::how_many_holes() {
+    int ans = 0;
+    f(j, 0, W) {
+        int lnk = 0;
+        f(i, 0, H) {
+            if (board[i][j] && lnk) {
+                ans++;
+            }
+            lnk += (board[i][j] ^ 1);
+        }
+    }
+    return ans;
+}
+
+int Tetris::max_height() {
+    for (int i = H - 1; i >= 0; i--) {
+        f(j, 0, W) {
+            if (board[i][j]) return i;
+        }
+    }
+    return 0;
+}
+
+ld Tetris::position_value() {
+    return ld(how_many_holes()) * w1 + ld(max_height()) * w2 + ld(lines) * w3;
+}
+
