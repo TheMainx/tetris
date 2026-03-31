@@ -64,3 +64,12 @@ void trenuj(ld p1, ld p2, ld p3) { //ma dac mediane po ile_gier grach dla danego
 int main() {
    trenuj(20, 5, -10);    
 }
+
+/* nie daje dupy - to sa wyniki po rozegraniu 100 gier
+
+    maks = 78
+min = 0
+mediana = 12
+srednia = 16.13
+
+*/
