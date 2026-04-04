@@ -23,10 +23,13 @@ ld losuj(int l, int r) {
 
 const int H = 20;
 const int W = 10;
-const int ile_gier = 100;
-const int ile_maks_ruchow = 10000; //ile maksymalnie klockow na gre
+const int ile_gier = 1;
+const int ile_maks_ruchow = 100000; //ile maksymalnie klockow na gre
 
 vi ile_rotacji = {2, 4, 4, 4, 4, 4, 1}; //minimalny opt i to jeszcze zle napisany - trzeba pozniej bedzie poprawic by lepiej dzialal
+vector<char> klocki = {'I', 'L', 'J', 'T', 'S', 'Z', 'O'};
+bool debug = true;
+bool wypisywanie = true;
 
 int trenuj(vector<ld>& a) { //ma dac mediane po ile_gier grach dla danego zestawu parametrow
     vi wyn; //wyniki
@@ -34,6 +37,11 @@ int trenuj(vector<ld>& a) { //ma dac mediane po ile_gier grach dla danego zestaw
         Tetris gra;
         gra.init(H, W, a[0], a[1], a[2], a[3]);
         f(j, 0, ile_maks_ruchow) {
+            if (wypisywanie) {
+                cout << "blok = " << klocki[gra.block] << en;
+                gra.render();
+                cout << en;
+            }
             pair<ld, pair<int, int>> ruch = {1'000'000'000, {-1, -1}}; //chcemy go minimalizowac
             f(w, 0, W) {
                 f(rot, 0, ile_rotacji[gra.block]) {
@@ -49,6 +57,7 @@ int trenuj(vector<ld>& a) { //ma dac mediane po ile_gier grach dla danego zestaw
             }
             gra.move(ruch.nd.st, ruch.nd.nd);
             if (j == (ile_maks_ruchow  -1)) {
+                cout << "do konca doszlismy\n";
                 wyn.pb(gra.lines);
                 break;
             }
@@ -57,31 +66,36 @@ int trenuj(vector<ld>& a) { //ma dac mediane po ile_gier grach dla danego zestaw
     sort(all(wyn));
     int med = wyn[sz(wyn)/2];
     int sum = 0;
-    /*int maks = wyn[0];
-    int minn = wyn[0];*/
+    int maks = wyn[0];
+    int minn = wyn[0];
     tv(ele, wyn) {
         sum += ele;
-        /*maks = max(maks, ele);
-        minn = min(minn, ele);*/
+        maks = max(maks, ele);
+        minn = min(minn, ele);
     }
-    /*cout << "maks=" << maks << en;
-    cout << "minn=" << minn << en;
-    cout << "med=" << med << en;
-    cout << "srednia=" << ld(ld(sum)/ld(ile_gier)) << en;*/
-    return (med * sz(wyn) + sum);
+    if (debug){
+        cout << "maks=" << maks << en;
+        cout << "minn=" << minn << en;
+        cout << "med=" << med << en;
+        cout << "srednia=" << ld(ld(sum)/ld(ile_gier)) << en;
+    }
+    return ((med * sz(wyn) * 2) + sum);
 }
 
 const ld d = 100;
 
-vector<ld> dobierz_parametry() {
+pair<int, vector<ld>> dobierz_parametry(int zm) {
     int n = 4;
-    vector<ld> wyn = {losuj(1, 100)/d, losuj(1, 100)/d, losuj(1, 100)/d, losuj(1, 100)/d};
-    int liczba_epok = 10; //ile moze 
-    int ile_prob = 10;
+    vector<ld> wyn = {ld(losuj(50, 100))/d, ld(losuj(1, 50))/d, ld(losuj(1, 50))/d, ld(losuj(1, 50))/d};
+    int liczba_epok = 100; //ile moze i tak bedzie break
+    int ile_prob = 12;
+    pair<int, vector<ld>> aktl_kand = {trenuj(wyn), wyn};
     f(j, 0, liczba_epok) {
         cout << "start epoki " << j << en;
-        int zakres = (95 - (9 * j));
-        pair<int, vector<ld>> aktl_kand = {trenuj(wyn), wyn};
+        int zakres = (300 - (zm * j));
+        if (zakres <= 0) {
+            break;
+        }
         rep(_, ile_prob) {
             cout << "proba " << _ << en;
             vector<ld> kand = wyn;
@@ -93,26 +107,21 @@ vector<ld> dobierz_parametry() {
                 kand[i] *= pr;
             }
             int nowy_wyn = trenuj(kand);
-            cout << "pot wyn to " << ld(ld(nowy_wyn)/ld(ile_gier * 2)) << "med + srednia/2" << en;
+            //cout << "pot wyn to " << ld(ld(nowy_wyn)/ld(ile_gier * 3)) << "med + srednia/2" << en;
             aktl_kand = max(aktl_kand, {nowy_wyn, kand});
         }
         wyn = aktl_kand.nd;
-        cout << "koniec epoki\n";
+        cout << "koniec epoki pot wyn to " << ld(ld(aktl_kand.st)/ld(ile_gier * 3)) << "\n";
     }
-    return wyn;
+    return aktl_kand;
 }
 
 int main() {
-    vector<ld> parametry = dobierz_parametry();
-    tv(ele, parametry) {
+    /*pair<int, vector<ld>> wyn = dobierz_parametry(30);
+    tv(ele, wyn.nd) {
         cout << ele << " ";
     }
-    /*vector<ld> parametry = {0.874915 ,0.0935118, 0.323041, 0.0132418}; -> jakie mi dalo parametry gdy odpalilem
+    cout << en;*/
+    vector<ld> parametry = {5.75484 ,0.303995 ,0.553957 ,0.316186};
     trenuj(parametry);
-    maks=159
-    minn=1
-    med=24
-    srednia=34.85
-    takie robi wyniki bot z tymi parametrami
-   */
 }
