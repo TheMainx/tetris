@@ -71,14 +71,20 @@ vector<vector<vector<pair<int, int>>>> tetromina = {
     }
 };
 
-void Tetris::init(int h, int w, ld we1, ld we2, ld we3) {
+void Tetris::init(int h, int w, ld we1, ld we2, ld we3, ld we4) {
     w1 = we1;
     w2 = we2;
     w3 = we3;
+    w4 = we4;
     H = h;
     W = w;
+    ile_dziur = 0;
+    wysokosci = {};
+    wysokosci.resize(W, 0);
+    ile_w_kolumnie_dziur = {};
+    ile_w_kolumnie_dziur.resize(W, 0);
     board = {};
-    board.resize(h, vi(w, 0));
+    board.resize(h, 0);
     block = los(0, sz(tetromina) - 1);
     end_of_game = false;
     lines = 0;
@@ -89,7 +95,14 @@ bool Tetris::inn(int y, int x) {
     return true;
 }
 
+int Tetris::pole(int h, int w) {
+    return (board[h]&(1 << w));
+}
+
 void Tetris::erase_row(vi& a) {
+    if (sz(a) == 0) {
+        return;
+    }
     sort(all(a));
     lines += sz(a);
     a.pb(H + 10);
@@ -97,7 +110,7 @@ void Tetris::erase_row(vi& a) {
     f(i, 0, H) {
         if (a[wsk] == i) {
             f(j, 0, W) {
-                board[i][j] = 0;
+                board[i] = 0;
             }
             wsk++;
         } else {
@@ -105,6 +118,27 @@ void Tetris::erase_row(vi& a) {
                 swap(board[i], board[i - wsk]);
             }
         }
+    }
+    f(i, 0, W) {
+        wysokosci[i] = 0;
+        for (int h = H - 1; h >= 0; h--) {
+            if (pole(h, i)) {
+                wysokosci[i] = h + 1;
+                break;
+            }
+        }
+    }
+    ile_dziur = 0;
+    f(j, 0, W) {
+        ile_w_kolumnie_dziur[j] = 0;
+        int zj = 0;
+        for (int i = H - 1; i >= 0; i--) {
+            if (!pole(i, j) && zj) {
+                ile_w_kolumnie_dziur[j]++;
+            }
+            zj += pole(i, j);
+        } 
+        ile_dziur += ile_w_kolumnie_dziur[j];
     }
 }
 
@@ -119,26 +153,10 @@ void Tetris::move(int col, int rot) {
         return;
     }
 
-    int stop = 0;
-    for (int h = H - 1; h >= 0; h--) {
-        if (stop) break;
-        int ys = h;
-        int xs = col;
-        tv(ele, tetromina[block][rot]) {
-            int ny = ys + ele.st;
-            int nx = xs + ele.nd;
-            if (ny < 0) {
-                stop = h + 1;
-                break;
-            }
-            if (ny >= H) {
-                continue;
-            }
-            if (board[ny][nx]) {
-                stop = h + 1;
-                break;
-            }
-        }
+    int stop = 0; //stop jest liczony wzgledem klocka {0, 0}
+    tv(ele, tetromina[block][rot]) {
+        int nx = col + ele.nd;
+        stop = max(stop, wysokosci[nx] - ele.st);
     }
 
     int ys = stop;
@@ -156,14 +174,26 @@ void Tetris::move(int col, int rot) {
     tv(ele, tetromina[block][rot]) {
         int ny = ys + ele.st;
         int nx = xs + ele.nd;
-        board[ny][nx]++;
-        int sum = 0;
-        f(i, 0, W) {
-            sum += board[ny][i];
-        }
-        if (sum == W) {
+        board[ny] += (1 << nx);
+        if (board[ny] == ((1 << W) - 1)) {
             do_usuniecia.pb(ny);
         }
+        wysokosci[nx] = max(wysokosci[nx], ny + 1);
+    }
+
+    tv(ele, tetromina[block][rot]) {
+        int ny = ys + ele.st;
+        int nx = xs + ele.nd;
+        ile_dziur -= ile_w_kolumnie_dziur[nx];
+        ile_w_kolumnie_dziur[nx] = 0;
+        int zj = 0;
+        for (int i = H - 1; i >= 0; i--) {
+            if (!pole(i, nx) && zj) {
+                ile_w_kolumnie_dziur[nx]++;
+            }
+            zj += pole(i, nx);
+        } 
+        ile_dziur += ile_w_kolumnie_dziur[nx];
     }
 
     erase_row(do_usuniecia);
@@ -171,39 +201,33 @@ void Tetris::move(int col, int rot) {
 }
 
 void Tetris::render() {
+    cout << "ile dziur = " << ile_dziur << en;
     for (int h = H - 1; h >= 0; h--) {
-        f(i, 0, W) {
-            if (board[h][i]) cout << '#';
+        f(w, 0, W) {
+            if (pole(h, w)) cout << '#';
             else cout << '.';
         }
         cout << "\n";
     }
 }
 
-int Tetris::how_many_holes() {
-    int ans = 0;
+int Tetris::max_height() {
+    int wyn = 0;
     f(j, 0, W) {
-        int lnk = 0;
-        f(i, 0, H) {
-            if (board[i][j] && lnk) {
-                ans++;
-            }
-            lnk += (board[i][j] ^ 1);
-        }
+        wyn = max(wyn, wysokosci[j]);
+    }
+    return wyn;
+}
+
+int Tetris::kwadraty_roznic() { //kwadraty roznic wzgeldnych
+    int ans = 0;
+    f(i, 1, W) {
+        ans += ((wysokosci[i] - wysokosci[i - 1])*(wysokosci[i] - wysokosci[i - 1]));
     }
     return ans;
 }
 
-int Tetris::max_height() {
-    for (int i = H - 1; i >= 0; i--) {
-        f(j, 0, W) {
-            if (board[i][j]) return i;
-        }
-    }
-    return 0;
-}
-
 ld Tetris::position_value() {
-    return ld(how_many_holes()) * w1 + ld(max_height()) * w2 + ld(lines) * w3;
+    return ld(ile_dziur) * w1 + ld(max_height()) * w2 - ld(lines) * w3 + ld(kwadraty_roznic()) * w4;
 }
 
